@@ -1,0 +1,151 @@
+<html>
+<head>
+	<title>OBJECT LOCATOR!</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/p5.js"></script>
+
+  <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+</head>
+
+<body background="back.jpg">
+    <h1 id="Head">OBJECT LOCATOR!</h1>
+    <div>
+        <input type="text" id="object" placeholder="ENTER OBJECT NAME!(TRY BANANA!)" style="color: white; width: 400px;">
+        <button onclick="start();" id="start">START!</button>
+    </div>
+    <div>
+        <h3 id="status" style="margin-right: 300px; margin-left: 300px;"></h3>
+        <h3 id="detectionStatus" style="margin-right: 300px; margin-left: 300px;"></h3>
+    </div>
+</body>
+</html>
+
+<style>
+    body {
+        background-size: cover;
+        font-size: 20px;
+        color: white;
+        text-align: center;
+        text-shadow: 2px 2px 5px white;
+        border: 10px solid white;
+        border-radius: 10px;
+    }
+
+    #Head {
+        font-size: 50px;
+        font-weight: bold;
+    }
+
+    #object, #start, #status, #detectionStatus {
+        background-color: transparent;
+        border: 2px solid white;
+        box-shadow: 2px 2px 5px white;
+        color: white;
+        font-weight: 100;
+        border-radius: 10px;
+        padding: 5px;
+        margin: 10px;
+        margin-left: 20px;
+        margin-right: 20px;
+        text-align: center;
+    }
+
+    canvas {
+        margin-top: 500px;
+        background-color: transparent;
+        border: 2px solid white;
+        box-shadow: 2px 2px 5px white;
+        color: white;
+        font-weight: 100;
+        border-radius: 10px;
+        padding: 5px;
+        margin: 10px;  
+    }
+</style>
+
+<script>
+    vid = "";
+    status = "";
+    object = [];
+    obj = "";
+    detect = "";
+    var speechRecognition = window.speechSynthesis;
+    var recognition = new speechSynthesis();
+
+    function preload() {
+        vid = createVideo("vid.mp4");
+        vid.hide();
+    }
+
+    function setup() {
+        canvas = createCanvas(350, 450);
+    }
+
+    function draw() {
+        image(vid, 0, 0, 350, 450);
+
+        if (status = true) {
+        for (i = 0; i < object.length; i++) {
+            document.getElementById("detectionStatus").innerHTML = "COCOSSD IS LOOKING FOR A " + obj;
+            document.getElementById("status").innerHTML = "DETECTING OBJECTS...";
+
+            fill("#808080");
+            stroke("#808080");
+            strokeWeight(1);
+            percent = floor(object[i].confidence * 100);
+            text(object[i].label + ", " + percent + "%", object[i].x + 10, object[i].y - 10);
+            noFill();
+            strokeWeight(2);
+            rect(object[i].x, object[i].y, object[i].width, object[i].height);
+            if (object[i].label == obj) {
+                detect = true;
+            } 
+        }
+
+        if (detect == true) {
+             document.getElementById("detectionStatus").innerHTML = obj + " FOUND!!";
+        } 
+      }
+    }
+
+    function start() {
+        document.getElementById("status").innerHTML = "DETECTING OBJECTS...";
+        detector = ml5.objectDetector("cocossd", loaded);
+
+        obj = document.getElementById("object").value;
+
+        detect = false;
+    }
+
+    function loaded() {
+        console.log("model loaded");
+        status = true;
+
+        vid.loop();
+        vid.speed(1);
+        vid.volume(0);
+
+        detector.detect(vid, gotResult);
+    }
+
+    function gotResult(error, results) {
+    if (error) {
+        console.error(error);
+    } else {
+        console.log(results);
+        object = results;
+    }
+    detector.detect(vid, gotResult);
+    }
+
+    function speak() {
+    var speaker = window.speechSynthesis;
+    speechData = obj + " found";
+    speech = new SpeechSynthesisUtterance(speechData);
+    speaker.speak(speech);
+}
+</script>
